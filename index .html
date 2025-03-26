@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>健康指数计算器</title>
+  <style>
+    body { 
+      font-family: Arial; 
+      text-align: center; 
+      padding: 20px;
+      background: #f5f2e9;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 2px solid #4CAF50;
+      border-radius: 10px;
+    }
+    h2 { 
+      color: #2c3e50;
+      margin-bottom: 25px;
+    }
+    input, select { 
+      width: 80%; 
+      margin: 10px; 
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .gender-group {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 15px 0;
+    }
+    .gender-group label {
+      display: flex;
+      align-items: center;
+    }
+    button { 
+      background: #4CAF50; 
+      color: white; 
+      padding: 15px 30px;
+      font-size: 16px;
+      border: none;
+      border-radius: 25px;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>健康指数计算器</h2>
+    
+    <input type="number" id="age" placeholder="年龄（岁）" min="1" max="120">
+    <div class="gender-group">
+      <label>
+        <input type="radio" name="gender" value="male"> 男性
+      </label>
+      <label>
+        <input type="radio" name="gender" value="female"> 女性
+      </label>
+    </div>
+    <input type="number" id="height" placeholder="身高（cm）">
+    <input type="number" id="weight" placeholder="体重（kg）">
+    
+    <button onclick="calculate()">立即计算</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    function calculate() {
+      // 获取用户输入
+      const age = parseInt(document.getElementById('age').value);
+      const gender = document.querySelector('input[name="gender"]:checked')?.value;
+      const height = parseFloat(document.getElementById('height').value);
+      const weight = parseFloat(document.getElementById('weight').value);
+
+      // 输入验证
+      if (!gender || isNaN(age) || age < 1 || isNaN(height) || height <= 0 || isNaN(weight) || weight <= 0) {
+        alert("请填写完整的有效信息！");
+        return;
+      }
+
+      // ========== 核心计算逻辑 ==========
+      // 1. 计算基础代谢率（BMR - Mifflin-St Jeor公式）
+      let bmr;
+      if (gender === 'male') {
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+      } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+      }
+
+      // 2. 每日营养需求（考虑活动系数）
+      const activityFactor = 1.2; // 基础代谢率 × 活动系数（1.2为静坐）
+      const dailyEnergy = (bmr * activityFactor).toFixed(0);
+      const dailyCarbs = ((dailyEnergy * 0.55) / 4).toFixed(1); // 碳水化合物供能比55%
+      const dailySodium = 2000; // 钠(mg)
+
+      // 3. 每袋20g的营养含量
+      const perBag = {
+        energy: 1595 * 0.2,   // 319kJ
+        carbs: 93.8 * 0.2,    // 18.76g
+        sodium: 10 * 0.2      // 2mg
+      };
+
+      // 4. 计算占比
+      const energyPercent = (perBag.energy / (dailyEnergy/4.184) * 100).toFixed(1); // 转换kJ到大卡
+      const carbsPercent = (perBag.carbs / dailyCarbs * 100).toFixed(1);
+      const sodiumPercent = (perBag.sodium / dailySodium * 100).toFixed(1);
+
+      // ========== 结果显示 ==========
+      document.getElementById("result").innerHTML = `
+        <strong>您的每日营养需求：</strong>
+        <ul>
+          <li>能量：${dailyEnergy} 大卡</li>
+          <li>碳水化合物：${dailyCarbs} g</li>
+          <li>钠：${dailySodium} mg</li>
+        </ul>
+
+        <strong>每袋（20g）营养占比：</strong>
+        <ul>
+          <li>能量：${energyPercent}%</li>
+          <li>碳水化合物：${carbsPercent}%</li>
+          <li>钠：${sodiumPercent}%</li>
+        </ul>
+      `;
+    }
+  </script>
+</body>
+</html>
